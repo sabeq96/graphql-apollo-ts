@@ -1,6 +1,8 @@
 import { ApolloServer, gql } from 'apollo-server'
 import { find, filter } from 'lodash';
 
+import { Author as AuthorM, Comment as CommentM } from './models'
+
 interface Author { id: string, name: string };
 const authorList: Author[] = [{ id: '1', name: 'Shakespear' }]
 
@@ -49,4 +51,9 @@ const server = new ApolloServer({
 
 server.listen().then(({ url }) => {
   console.log(`Server ready at ${url}`);
+  new AuthorM().fetchAll({ withRelated: ['comments'] }).then((response) => {
+    const res: any = response.toJSON();
+
+    console.log(res[0].comments)
+  })
 });
