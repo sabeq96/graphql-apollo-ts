@@ -1,59 +1,22 @@
-import { ApolloServer, gql } from 'apollo-server'
-import { find, filter } from 'lodash';
+import { ApolloServer } from 'apollo-server';
+import { makeExecutableSchema } from 'graphql-tools';
+import { merge } from 'lodash';
 
-import { Author as AuthorM, Comment as CommentM } from './models'
+import { rootTypeDefs } from './common/rootTypes';
+import { authorResolvers, authorTypeDefs } from './common/Author/Author.schema';
+import { commentResolvers, commentTypeDefs } from './common/Comment/Comment.schema';
 
-interface Author { id: string, name: string };
-const authorList: Author[] = [{ id: '1', name: 'Shakespear' }]
+import './client';
 
-interface Comment {id: string, name: string, author: string };
-const commentList: Comment[] = [{ id: '1', name: 'Lorem ipsum es numero uno', author: '1' }]
-
-const typeDefs = gql`
-  type Comment {
-    id: ID
-    name: String
-    author: Author
-  }
-
-  type Author {
-    id: ID
-    name: String
-    comments: [Comment]
-  }
-
-  type Query {
-    author (id: ID): Author
-    comment (id: ID): Comment
-    comments (author: ID): [Comment]
-  }
-`;
-
-const resolvers = {
-  Query: {
-    author: (_, { id }) => find(authorList, { id }),
-    comments: (_, { author }) => filter(commentList, { author }),
-    comment: (_, { id }) => find(commentList, { id }),
-  },
-  Author: {
-    comments: (author) => filter(commentList, { author: author.id })
-  },
-  Comment: {
-    author: (comment) => find(authorList, { id: comment.author })
-  } 
-  
-}
+const schema = makeExecutableSchema({
+  typeDefs: [rootTypeDefs, authorTypeDefs, commentTypeDefs],
+  resolvers: merge(authorResolvers, commentResolvers),
+});
 
 const server = new ApolloServer({
-  typeDefs,
-  resolvers,
+  schema,
 })
 
 server.listen().then(({ url }) => {
   console.log(`Server ready at ${url}`);
-  new AuthorM().fetchAll({ withRelated: ['comments'] }).then((response) => {
-    const res: any = response.toJSON();
-
-    console.log(res[0].comments)
-  })
 });

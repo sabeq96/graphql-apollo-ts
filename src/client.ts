@@ -1,18 +1,9 @@
-import * as Knex from 'knex';
-import * as Bookshelf from 'bookshelf';
+import * as mongoose from 'mongoose';
 
 const dbConfig = {
-  client: 'mysql',
-  connection: {
-    host     : '127.0.0.1',
-    user     : 'root',
-    password : '',
-    database : 'test',
-    charset  : 'utf8'
-  }
+  url: 'mongodb://sabek:sabek1234@ds213178.mlab.com:13178/test-graphql',
 };
 
-const knex: Knex = Knex(dbConfig);
-const db: Bookshelf = Bookshelf(knex as any);
-
-export default db;
+mongoose.set("debug", true);
+mongoose.connect(dbConfig.url, { useNewUrlParser: true });
+mongoose.connection.once('open', () => console.log(`Connected to mongo at ${dbConfig.url}`));
