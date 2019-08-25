@@ -1,18 +1,8 @@
 import * as Knex from 'knex';
-import * as Bookshelf from 'bookshelf';
+import { Model } from 'objection';
 
-const dbConfig = {
-  client: 'mysql',
-  connection: {
-    host     : '127.0.0.1',
-    user     : 'root',
-    password : '',
-    database : 'test',
-    charset  : 'utf8'
-  }
-};
+const knexFile = require('../knexfile.js')
 
-const knex: Knex = Knex(dbConfig);
-const db: Bookshelf = Bookshelf(knex as any);
+export const knex = Knex(knexFile.development)
 
-export default db;
+Model.knex(knex);

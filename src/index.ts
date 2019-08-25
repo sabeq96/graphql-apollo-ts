@@ -1,18 +1,14 @@
-import { ApolloServer, gql } from 'apollo-server'
-import { find, filter } from 'lodash';
+import { ApolloServer, gql } from 'apollo-server';
 
-import { Author as AuthorM, Comment as CommentM } from './models'
+import './client';
 
-interface Author { id: string, name: string };
-const authorList: Author[] = [{ id: '1', name: 'Shakespear' }]
-
-interface Comment {id: string, name: string, author: string };
-const commentList: Comment[] = [{ id: '1', name: 'Lorem ipsum es numero uno', author: '1' }]
+import { Author } from './models/Author';
+import { Comment } from './models/Comment';
 
 const typeDefs = gql`
   type Comment {
     id: ID
-    name: String
+    text: String
     author: Author
   }
 
@@ -25,23 +21,22 @@ const typeDefs = gql`
   type Query {
     author (id: ID): Author
     comment (id: ID): Comment
-    comments (author: ID): [Comment]
+    comments (authorName: String): [Comment]
   }
 `;
 
 const resolvers = {
   Query: {
-    author: (_, { id }) => find(authorList, { id }),
-    comments: (_, { author }) => filter(commentList, { author }),
-    comment: (_, { id }) => find(commentList, { id }),
+    author: (_, { id }) => Author.query().findById(id),
+    comments: (_, { author }) => Comment.query().innerJoinRelation('author'),
+    comment: (_, { id }) => Comment.query().findById(id),
   },
   Author: {
-    comments: (author) => filter(commentList, { author: author.id })
+    comments: ({ id }) => Comment.query().where('author_id', '=', id),
   },
   Comment: {
-    author: (comment) => find(authorList, { id: comment.author })
-  } 
-  
+    author: ({ author_id }) => Author.query().findById(author_id) 
+  }
 }
 
 const server = new ApolloServer({
@@ -49,11 +44,9 @@ const server = new ApolloServer({
   resolvers,
 })
 
-server.listen().then(({ url }) => {
-  console.log(`Server ready at ${url}`);
-  new AuthorM().fetchAll({ withRelated: ['comments'] }).then((response) => {
-    const res: any = response.toJSON();
-
-    console.log(res[0].comments)
-  })
+server.listen().then(async ({ url }) => {
+  console.log(`Server starts at ${url}`)
+  // const a = await Comment.query().joinRelation('author')
+  // const b = await Author.query().joinRelation('comments')
+  console.log(Author, '------------', Comment)
 });
