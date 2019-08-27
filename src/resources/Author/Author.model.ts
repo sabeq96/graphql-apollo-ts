@@ -11,8 +11,7 @@ const authorSchema: Schema = new Schema({
   timestamps: true,
 });
 
-authorSchema.post('remove', (doc) => {
-  console.log(doc, 'dooooooooooooooooc')
+authorSchema.post('remove', function (doc) {
   Comment.deleteMany({ authorId: doc.id }).exec()
 })
 
